@@ -3,17 +3,35 @@
 import Link from "next/link"
 import { useState } from "react"
 import { signIn, signOut, useSession } from "next-auth/react"
+import Swal from "sweetalert2"
 import {
   NavigationMenu,
   NavigationMenuList,
   NavigationMenuItem,
   NavigationMenuLink,
 } from "@/components/ui/navigation-menu"
-import { Menu } from "lucide-react"
 
 export function MainNav() {
   const [isOpen, setIsOpen] = useState(false)
   const { data: session } = useSession()
+
+ 
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You will be logged out!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, logout",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        signOut()
+        Swal.fire("Logged out!", "You have been logged out.", "success")
+      }
+    })
+  }
 
   return (
     <div className="sticky top-0 z-50 w-full border-b shadow-sm bg-[#e9d5ff]">
@@ -48,17 +66,28 @@ export function MainNav() {
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
+
+              {/* Dashboard only when logged in */}
+              {session && (
+                <NavigationMenuItem>
+                  <Link href="/dashboard" legacyBehavior passHref>
+                    <NavigationMenuLink className="rounded-md px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors">
+                      Dashboard
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+              )}
             </NavigationMenuList>
           </NavigationMenu>
         </div>
 
-        {/* Right - Auth */}
+     
         <div className="hidden md:flex items-center gap-2">
           {session ? (
             <>
               <span className="text-sm font-medium">Hi, {session.user?.name}</span>
               <button
-                onClick={() => signOut()}
+                onClick={handleLogout}
                 className="rounded-md bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors"
               >
                 Logout

@@ -1,32 +1,65 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Mail, Lock, User, Home, UserPlus } from "lucide-react"
+import Link from "next/link";
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Mail, Lock, User, Home, UserPlus, Chrome } from "lucide-react";
+import Lottie from "lottie-react";
+import registerAnim from "@/../public/lottie/register.json";
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [name, setName] = useState("")
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [role, setRole] = useState("explorer");
 
   const handleRegister = async (e) => {
-    e.preventDefault()
-    // TODO: Save user to DB
-    alert(`Registering: ${name}, ${email}`)
-  }
+    e.preventDefault();
+
+    const res = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password, role }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert("Registration successful! You can now login.");
+      window.location.href = "/login";
+    } else {
+      alert(data.error || "Something went wrong");
+    }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
-      <Card className="w-full max-w-md shadow-xl border border-gray-200">
-        <CardHeader>
-          <CardTitle className="text-center text-3xl font-extrabold text-purple-700">
-            Create Account
-          </CardTitle>
+      <Card className="w-full max-w-md shadow-xl border border-gray-200 rounded-xl">
+        <CardHeader className="space-y-4 text-center">
+          <Lottie animationData={registerAnim} className="h-40 mx-auto" />
+          <CardTitle className="text-3xl font-extrabold text-purple-700">Create Account</CardTitle>
         </CardHeader>
+
         <CardContent className="space-y-6">
+          {/* Google Register/Login */}
+          <Button
+            onClick={() => signIn("google", { callbackUrl: "/" })}
+            className="w-full bg-red-500 hover:bg-red-600 text-white font-medium flex items-center justify-center gap-2"
+          >
+            <Chrome className="w-5 h-5" />
+            Continue with Google
+          </Button>
+
+          {/* Divider */}
+          <div className="flex items-center my-4">
+            <div className="flex-1 h-px bg-gray-300" />
+            <span className="px-3 text-sm text-gray-500">or</span>
+            <div className="flex-1 h-px bg-gray-300" />
+          </div>
+
+          {/* Email/Password Registration */}
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="relative">
               <User className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
@@ -61,6 +94,17 @@ export default function RegisterPage() {
                 required
               />
             </div>
+
+
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full border-gray-300 rounded-lg p-2"
+            >
+              <option value="explorer">Explorer</option>
+              <option value="eventplanner">Event Planner</option>
+            </select>
+
             <Button
               type="submit"
               className="w-full bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
@@ -84,5 +128,5 @@ export default function RegisterPage() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }

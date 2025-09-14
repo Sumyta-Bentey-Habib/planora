@@ -1,31 +1,34 @@
-"use client"
+"use client";
 
-import { signIn } from "next-auth/react"
-import Link from "next/link"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Mail, Lock, Home, LogIn, Chrome } from "lucide-react"
+import { signIn } from "next-auth/react";
+import Link from "next/link";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Mail, Lock, Home, LogIn, Chrome } from "lucide-react";
+import Lottie from "lottie-react";
+import loginAnim from "@/../public/lottie/login.json";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleCredentialsLogin = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     await signIn("credentials", {
       email,
       password,
       redirect: true,
       callbackUrl: "/",
-    })
-  }
+    });
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200 px-4">
       <Card className="w-full max-w-md shadow-xl border border-gray-200 rounded-xl">
-        <CardHeader className="text-center">
+        <CardHeader className="text-center space-y-4">
+          <Lottie animationData={loginAnim} className="h-40 mx-auto" />
           <CardTitle className="text-3xl font-extrabold text-purple-700">Welcome Back</CardTitle>
         </CardHeader>
 
@@ -81,10 +84,7 @@ export default function LoginPage() {
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2 items-center">
-          <Link
-            href="/"
-            className="text-sm text-gray-600 hover:text-purple-700 flex items-center gap-1"
-          >
+          <Link href="/" className="text-sm text-gray-600 hover:text-purple-700 flex items-center gap-1">
             <Home className="w-4 h-4" /> Back to Home
           </Link>
           <p className="text-sm text-gray-500">
@@ -96,5 +96,5 @@ export default function LoginPage() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
