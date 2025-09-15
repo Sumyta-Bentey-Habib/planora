@@ -23,11 +23,13 @@ export async function POST(req) {
       email,
       password: hashedPassword,
       role,
-      provider: "credentials",
       createdAt: new Date(),
     });
 
-    return new Response(JSON.stringify({ success: true, userId: result.insertedId }), { status: 201 });
+    return new Response(
+      JSON.stringify({ success: true, userId: result.insertedId }),
+      { status: 201 }
+    );
   } catch (err) {
     console.error(err);
     return new Response(JSON.stringify({ error: "Server error" }), { status: 500 });

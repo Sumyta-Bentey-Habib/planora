@@ -1,8 +1,8 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
+import dbconnect from "@/lib/dbConnect";
 import bcrypt from "bcrypt";
-import dbconnect from "@/lib/dbconnect";
 
 const handler = NextAuth({
   providers: [
@@ -11,21 +11,16 @@ const handler = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
     CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
-      },
       async authorize(credentials) {
         const users = await dbconnect("users");
         const user = await users.findOne({ email: credentials.email });
+        if (!user) return null;
 
-        if (!user) throw new Error("No user found");
         const isValid = await bcrypt.compare(credentials.password, user.password);
-        if (!isValid) throw new Error("Invalid password");
+        if (!isValid) return null;
 
         return {
-          id: user._id.toString(),
+          id: user._id,
           name: user.name,
           email: user.email,
           role: user.role,
@@ -35,40 +30,39 @@ const handler = NextAuth({
   ],
 
   callbacks: {
-    async signIn({ user, account }) {
-      if (account.provider === "google") {
-        const users = await dbconnect("users");
-        const existingUser = await users.findOne({ email: user.email });
+    async jwt({ token, user, account }) {
+      // If logging in with Credentials, user already has role
+      if (user) {
+        token.role = user.role;
+      }
 
-        if (!existingUser) {
+      // If logging in with Google, fetch user from DB
+      if (!token.role) {
+        const users = await dbconnect("users");
+        const dbUser = await users.findOne({ email: token.email });
+
+        // If new Google user, assign default role "explorer"
+        if (!dbUser) {
           await users.insertOne({
-            name: user.name,
-            email: user.email,
-            password: null, 
+            name: token.name,
+            email: token.email,
             role: "explorer",
             provider: "google",
             createdAt: new Date(),
           });
+          token.role = "explorer";
+        } else {
+          token.role = dbUser.role;
         }
       }
-      return true;
+
+      return token;
     },
 
-    async session({ session }) {
-      const users = await dbconnect("users");
-      const dbUser = await users.findOne({ email: session.user.email });
-
-      if (dbUser) {
-        session.user.id = dbUser._id.toString();
-        session.user.role = dbUser.role;
-      }
-
+    async session({ session, token }) {
+      session.user.role = token.role;
       return session;
     },
-  },
-
-  pages: {
-    signIn: "/login",
   },
 });
 

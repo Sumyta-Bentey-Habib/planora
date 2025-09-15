@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -11,17 +12,28 @@ import Lottie from "lottie-react";
 import loginAnim from "@/../public/lottie/login.json";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleCredentialsLogin = async (e) => {
     e.preventDefault();
-    await signIn("credentials", {
+
+    const result = await signIn("credentials", {
+      redirect: false, 
       email,
       password,
-      redirect: true,
-      callbackUrl: "/",
     });
+
+    if (result?.ok) {
+      router.push("/dashboard"); 
+    } else {
+      console.error("Login failed:", result?.error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    await signIn("google", { callbackUrl: "/dashboard" }); 
   };
 
   return (
@@ -35,7 +47,7 @@ export default function LoginPage() {
         <CardContent className="space-y-6">
           {/* Google Login */}
           <Button
-            onClick={() => signIn("google", { callbackUrl: "/" })}
+            onClick={handleGoogleLogin}
             className="w-full bg-red-500 hover:bg-red-600 text-white font-medium flex items-center justify-center gap-2"
           >
             <Chrome className="w-5 h-5" />

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import Lottie from "lottie-react";
 import registerAnim from "@/../public/lottie/register.json";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -26,12 +28,28 @@ export default function RegisterPage() {
     });
 
     const data = await res.json();
+
     if (res.ok) {
-      alert("Registration successful! You can now login.");
-      window.location.href = "/login";
+      
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (result?.ok) {
+        router.push("/dashboard"); 
+      } else {
+        alert("Registration succeeded, but login failed. Please login manually.");
+        router.push("/login");
+      }
     } else {
       alert(data.error || "Something went wrong");
     }
+  };
+
+  const handleGoogleRegister = async () => {
+    await signIn("google", { callbackUrl: "/dashboard" });
   };
 
   return (
@@ -45,7 +63,7 @@ export default function RegisterPage() {
         <CardContent className="space-y-6">
           {/* Google Register/Login */}
           <Button
-            onClick={() => signIn("google", { callbackUrl: "/" })}
+            onClick={handleGoogleRegister}
             className="w-full bg-red-500 hover:bg-red-600 text-white font-medium flex items-center justify-center gap-2"
           >
             <Chrome className="w-5 h-5" />
@@ -94,7 +112,6 @@ export default function RegisterPage() {
                 required
               />
             </div>
-
 
             <select
               value={role}

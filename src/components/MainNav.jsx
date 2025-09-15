@@ -95,12 +95,12 @@ export function MainNav() {
             </>
           ) : (
             <>
-              <button
-                onClick={() => signIn("google")}
-                className="rounded-md px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+              <Link
+                href="/login"
+                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
               >
                 Login
-              </button>
+              </Link>
               <Link
                 href="/register"
                 className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
